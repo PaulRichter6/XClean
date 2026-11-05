@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Oclean 3D Tooth Model</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #0c0e14;
+    }
+    #canvas-container {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    .lr-indicator {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 22px;
+      font-weight: 900;
+      color: rgba(255, 255, 255, 0.18);
+      pointer-events: none;
+    }
+    #indicator-l { left: 16px; }
+    #indicator-r { right: 16px; }
+    #center-cross {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 24px;
+      height: 24px;
+      pointer-events: none;
+      opacity: 0.15;
+    }
+    #center-cross::before, #center-cross::after {
+      content: '';
+      position: absolute;
+      background-color: #00E5FF;
+    }
+    #center-cross::before {
+      top: 11px; left: 0; width: 24px; height: 2px;
+    }
+    #center-cross::after {
+      top: 0; left: 11px; width: 2px; height: 24px;
+    }
+    #loading-indicator {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 12px;
+      color: #00E5FF;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+  </style>
+  <script src="three.min.js"></script>
+  <script src="OrbitControls.js"></script>
+  <script src="ColladaLoader.js"></script>
+</head>
+<body>
+  <div id="canvas-container"></div>
+  <div id="indicator-l" class="lr-indicator">L</div>
+  <div id="indicator-r" class="lr-indicator">R</div>
+  <div id="center-cross"></div>
+  <div id="loading-indicator">Lade 3D-Modell...</div>
+
+  <script>
+    // Offizielle Oclean Node-Namen aus der extrahierten APK (3dmode_loader.html)
+    var nodeNames = [
+      "FBXASC0496", "FBXASC0491", "FBXASC0482", "FBXASC0484", 
+      "FBXASC0495", "FBXASC0492", "FBXASC0494", "FBXASC0493", 
+      "FBXASC0488", "FBXASC0487", "FBXASC0481", "FBXASC0483", 
+      "FBXASC0489", "FBXASC0486", "FBXASC0490", "FBXASC0485"
+    ];
+
+    var Normal = {};
+    var camera, scene, renderer, controls, pointLight;
+    var initPolar, initAzimuth;
+
+    init();
+    animate();
+
+    function init() {
+      const container = document.getElementById('canvas-container');
+      scene = new THREE.Scene();
+
+      // Kamera-Setup exakt wie im originalen Oclean tooth_model.js
+      camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.001, 3000);
+      camera.position.set(0, 0, 0.114);
+      camera.lookAt(0, 0, 0);
+      scene.add(camera);
+
+      // Studio-Beleuchtung
+      var ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+      scene.add(ambientLight);
+
+      pointLight = new THREE.DirectionalLight(0xffffff, 0.7);
+      pointLight.position.set(0, 0, 0.114);
+      pointLight.castShadow = true;
+      scene.add(pointLight);
+
+      // Zartes Konturlicht von oben/hinten
+      var topLight = new THREE.DirectionalLight(0x00e5ff, 0.25);
+      topLight.position.set(0, 0.1, -0.05);
+      scene.add(topLight);
+
+      // Renderer
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setClearColor(0x0c0e14, 1.0);
+      renderer.setPixelRatio(window.devicePixelRatio || 1);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      container.appendChild(renderer.domElement);
+      Normal.renderer = renderer;
+
+      // OrbitControls mit feiner Rotation & Zoom
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.08;
+      controls.maxDistance = 0.20;
+      controls.minDistance = 0.06;
+      controls.enablePan = false;
+      controls.enableZoom = true;
+
+      initPolar = controls.getPolarAngle();
+      initAzimuth = controls.getAzimuthalAngle();
+
+      // Collada DAE Loader für das echte extrahierte yaya.dae Modell
+      const loadingManager = new THREE.LoadingManager(function () {
+        scene.add(Normal.object);
+        const loaderEl = document.getElementById('loading-indicator');
+        if (loaderEl) loaderEl.style.display = 'none';
+
+        // Wenn bereits Zonen übermittelt wurden, jetzt anwenden
+        if (window._pendingZones) {
+          window.drawColor8(window._pendingZones);
+        }
+      });
+
+      const loader = new THREE.ColladaLoader(loadingManager);
+      loader.load('yaya.dae', function (collada) {
+        var object = collada.scene;
+        object.traverse(function (child) {
+          if (child.isMesh) {
+            if (child.name !== '') {
+              // Zähne standardmäßig cremeweiß
+              child.material.color.set(0xfafbfe);
+            } else {
+              // Zahnfleisch (Gingiva) im authentischen Oclean-Ton
+              child.material.color.set(0xfdcbcc);
+            }
+          }
+        });
+        object.position.set(0, 0, 0.01);
+        controls.rotateLeft(Math.PI / 12);
+        Normal.object = object;
+      });
+
+      window.addEventListener('resize', onWindowResize);
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    // --- Original Oclean 8-Zonen Färbung (aus Oclean APK 3dmode_loader.html) ---
+    /**
+     * Färbt die 8 Zonen des echten Oclean 3D-Kiefers:
+     * colors: Array von 8 Hex-Werten, z.B. ['#00E676', '#FFB300', '#FF5252', ...]
+     */
+    window.drawColor8 = function (colors) {
+      if (!Normal.object) {
+        window._pendingZones = colors;
+        return;
+      }
+      var object = Normal.object;
+
+      if (colors.length >= 8) {
+        // 0: Links Oben Außen
+        var liftUpOut = colors[0];
+        setNodeColor(object, nodeNames[0], liftUpOut);
+        setNodeColor(object, nodeNames[2], liftUpOut);
+
+        // 1: Links Oben Innen
+        var liftUpIn = colors[1];
+        setNodeColor(object, nodeNames[1], liftUpIn);
+        setNodeColor(object, nodeNames[3], liftUpIn);
+
+        // 4: Rechts Oben Außen
+        var rightUpOut = colors[4];
+        setNodeColor(object, nodeNames[4], rightUpOut);
+        setNodeColor(object, nodeNames[6], rightUpOut);
+
+        // 5: Rechts Oben Innen
+        var rightUpIn = colors[5];
+        setNodeColor(object, nodeNames[5], rightUpIn);
+        setNodeColor(object, nodeNames[7], rightUpIn);
+
+        // 2: Links Unten Außen
+        var liftDownOut = colors[2];
+        setNodeColor(object, nodeNames[8], liftDownOut);
+        setNodeColor(object, nodeNames[10], liftDownOut);
+
+        // 3: Links Unten Innen
+        var liftDownIn = colors[3];
+        setNodeColor(object, nodeNames[9], liftDownIn);
+        setNodeColor(object, nodeNames[11], liftDownIn);
+
+        // 6: Rechts Unten Außen
+        var rightDownOut = colors[6];
+        setNodeColor(object, nodeNames[12], rightDownOut);
+        setNodeColor(object, nodeNames[14], rightDownOut);
+
+        // 7: Rechts Unten Innen
+        var rightDownIn = colors[7];
+        setNodeColor(object, nodeNames[13], rightDownIn);
+        setNodeColor(object, nodeNames[15], rightDownIn);
+      }
+    };
+
+    function setNodeColor(object, nodeName, colorHex) {
+      const obj = object.getObjectByName(nodeName);
+      if (obj && obj.material) {
+        obj.material.color.set(colorHex);
+      }
+    }
+
+    /**
+     * Konvertiert die Sekunden aller 8 Oclean-Zonen in Farben mit Opacity
+     */
+    window.updateFromSeconds = function (secondsArray) {
+      if (!Array.isArray(secondsArray)) return;
+
+      var colors = secondsArray.map(function (sec) {
+        if (sec === 0) {
+          return '#ff5252'; // Rot: unvollständig / vergessen
+        } else if (sec < 10) {
+          return '#ffb300'; // Gelb: zu kurz
+        } else if (sec <= 30) {
+          return '#00e676'; // Grün: optimal
+        } else {
+          return '#ff5252'; // Rot: zu viel Druck
+        }
+      });
+
+      window.drawColor8(colors);
+    };
+
+    window.resetCamera = function () {
+      controls.reset();
+      camera.position.set(0, 0, 0.114);
+      controls.target.set(0, 0, 0);
+      controls.rotateLeft(Math.PI / 12);
+    };
+  </script>
+</body>
+</html>

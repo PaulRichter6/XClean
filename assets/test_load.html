@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<script src='three.min.js'></script>
+<script src='ColladaLoader.js'></script>
+</head>
+<body>
+<div id='log'></div>
+<script>
+try {
+  const loader = new THREE.ColladaLoader();
+  const daeXml = window.__DAE_DATA__;
+  const collada = loader.parse(daeXml, '');
+  document.getElementById('log').innerText = 'SUCCESS: ' + collada.scene.children.length;
+} catch (e) {
+  document.getElementById('log').innerText = 'ERROR: ' + e;
+}
+</script>
+</body>
+</html>
