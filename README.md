@@ -1,71 +1,94 @@
 # XClean 🪥✨
 ### 100% Offline, Privacy-First Companion for Oclean Smart Toothbrushes (X Pro Elite / X Elite)
 
-XClean ist eine native, werbefreie und komplett lokale Flutter-App für Oclean-Smart-Zahnbürsten (unterstützt u. a. **Oclean X Pro Elite** und **Oclean X Elite**, Modell `Y2088` / `OCLEANY3P`).
+**XClean** is a native, ad-free, open-source Flutter companion app for Oclean smart toothbrushes (specifically optimized for **Oclean X Pro Elite** and **Oclean X Elite**, model `Y2088` / `OCLEANY3P`).
 
-Kein Cloud-Zwang, kein Tracking, kein Benutzerkonto – alle Daten verbleiben via SQLite ausschließlich auf deinem Smartphone.
-
----
-
-## 🌟 Features
-
-- **100% Offline BLE Kommunikation:** Direkte Bluetooth-Low-Energy-Steuerung ohne Cloud, Server oder Registrierung.
-- **Interaktives 3D-Zahnmodell:**
-  - Echtes 3D-Kiefermodell (Ober- & Unterkiefer) mit Three.js WebGL & OrbitControls.
-  - Farbliche Erkennung nicht oder unzureichend geputzter Zonen (`Fehlt < 10s`, `Mäßig 10-25s`, `Gut > 25s`).
-- **Live-Putzbegleiter:**
-  - 2-Minuten Timer mit 4 x 30-Sekunden Quadranten.
-  - Haptisches Vibrations-Feedback bei jedem Quadrantenwechsel.
-- **Intelligente Spülfilterung:**
-  - Putzvorgänge unter 15 Sekunden (z. B. beim Abspülen unter Wasser) werden automatisch ignoriert, damit dein Score und deine Statistiken nicht verfälscht werden.
-- **Putz-Historie & Statistiken (Revolut-Stil):**
-  - Gruppierung nach Tagen (Heute, Gestern, Wochentag).
-  - Detailierte Auswertung von Putzdauer, Effektivzeit und Abdeckung.
-  - Option zum Löschen einzelner Sitzungen (Swipe-to-Delete).
-- **Favoriten & Auto-Connect:**
-  - Speichere deine Zahnbürste mit einem Stern ⭐ als Favorit.
-  - Automatischer Verbindungsaufbau direkt beim Öffnen der App.
-- **Lokale Putz-Erinnerungen:**
-  - Einstellbare Push-Benachrichtigungen morgens und abends zum Schutz deines Streaks.
-- **Android Homescreen-Widget:**
-  - Schnellübersicht über Streak, Score, Akkustand und letzte Putzzeit direkt auf dem Homescreen.
-- **Bürstenkopf-Lebensdauer:**
-  - Überwachung der verbleibenden Tage und Bürstvorgänge mit 1-Tap-Reset.
+No cloud accounts, no telemetry, no tracking — 100% of your dental health data stays entirely local on your device via SQLite.
 
 ---
 
-## 📱 Unterstützte Modelle
+## 🌟 Key Features
+
+- **100% Offline BLE Communication:**
+  - Direct Bluetooth Low Energy control without external servers, accounts, or internet access.
+  - Automatic time synchronization, telemetry retrieval, battery polling, and mode configuration.
+
+- **Interactive 3D Jaw & Dentition Analysis:**
+  - Real 3D jaw model (upper & lower jaw) rendered using Three.js WebGL with 360° touch OrbitControls.
+  - Heatmap color visualization highlighting missed or insufficiently brushed zones (`Missed < 10s`, `Moderate 10–25s`, `Good > 25s`).
+
+- **Interactive Live Brushing Companion:**
+  - 2-minute circular timer divided into 4 x 30-second quadrants.
+  - Haptic vibration feedback on quadrant switches (matching the physical toothbrush motor feedback).
+
+- **Smart Rinse Filtering:**
+  - Automatically filters out short sessions under 15 seconds (e.g., when turning the brush on under running tap water to clean the bristles).
+  - Prevents 0% score corruption on your dashboard and streaks.
+
+- **Revolut / WHOOP-Inspired Brushing History & Analytics:**
+  - History grouped cleanly by calendar days (Today, Yesterday, Weekdays).
+  - Detailed metrics for duration, effective brushing time, pressure distribution, and coverage.
+  - Individual session deletion (Swipe-to-Delete) and bulk rinse cleanup.
+
+- **Favorites & Auto-Connect:**
+  - Mark your toothbrush with a star ⭐ as a favorite.
+  - Instant auto-connection as soon as the app is opened.
+
+- **100% Local Brushing Reminders:**
+  - Configurable morning and evening local push notifications to protect your streak.
+
+- **Android Homescreen Widget:**
+  - Dark-mode widget showing your current streak, latest score, battery level, and last brushing time directly on your homescreen.
+
+- **Brush Head Health Tracking:**
+  - Real-time wear tracking (days used and total brushing cycles) with 1-tap reset.
+
+---
+
+## 📱 Supported Devices
 
 - **Oclean X Pro Elite**
-- **Oclean X Elite** (Modell `Y2088`, Firmware `1.0.0.32`+)
-- Weitere Modelle mit Oclean Type-1 BLE Protokoll (`*B#` Stream & Service `8082caa8-41a6-4021-91c6-56f9b954cc18`)
+- **Oclean X Elite** (Model `Y2088`, Firmware `1.0.0.32`+)
+- Any Oclean brush utilizing the Type-1 BLE protocol (`*B#` session stream & service `8082caa8-41a6-4021-91c6-56f9b954cc18`)
 
 ---
 
-## 🛠️ Build & Installation
+## 🛠️ Build & Setup
 
-### Voraussetzungen
-- Flutter SDK (3.24+ empfohlen)
+### Prerequisites
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) (3.24+ recommended)
 - Android SDK (API 34+)
-- Java / JDK 17
+- JDK 17
 
-### Projekt klonen & Abhängigkeiten laden:
+### 1. Clone the repository:
 ```bash
-git clone https://github.com/<DEIN-BENUTZERNAME>/XClean.git
+git clone https://github.com/PaulRichter6/XClean.git
 cd XClean
+```
+
+### 2. Install dependencies:
+```bash
 flutter pub get
 ```
 
-### Debug-APK bauen:
+### 3. Build Debug APK:
 ```bash
 flutter build apk --debug
 ```
-Die fertige APK befindet sich in:
+
+The compiled APK will be generated at:
 `build/app/outputs/flutter-apk/app-debug.apk`
 
 ---
 
-## 🛡️ Datenschutz & Lizenz
+## 🔒 Privacy & Architecture
 
-- **Datenschutz:** 100% lokal. Keine Tracking-SDKs, keine Analytics, keine Netzwerkverbindungen nach außen.
-- **Lizenz:** MIT License.
+- **No Cloud Dependencies:** Designed from the ground up to never transmit telemetry, metrics, or personal data to external servers.
+- **Local Storage:** SQLite database with encrypted SharedPreferences for settings.
+- **Open Protocol Implementation:** Reverse-engineered cleanroom BLE implementation of the Oclean packet structure.
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
